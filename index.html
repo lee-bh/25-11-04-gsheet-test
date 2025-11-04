@@ -1,29 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>Google Sheets DB Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px;
+      background: #f6f8fa;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #eee;
+    }
+    form {
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    input {
+      margin: 5px;
+      padding: 6px;
+    }
+    button {
+      padding: 6px 12px;
+      background: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <h2>Google Sheets Data</h2>
-  <ul id="list"></ul>
+  <h1>Google Sheets Database Demo</h1>
+
+  <form id="dataForm">
+    <label>이름: <input type="text" id="name" required></label>
+    <label>이메일: <input type="email" id="email" required></label>
+    <label>메시지: <input type="text" id="message" required></label>
+    <button type="submit">추가</button>
+  </form>
+
+  <table id="dataTable">
+    <thead>
+      <tr><th>이름</th><th>이메일</th><th>메시지</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
-    const sheetId = '1jECqla6oE5WB4U62NE__Qac22K2xfvyUeQ1VaGvK2K8'; // 시트 ID
-    const apiKey = 'AIzaSyC5-vsP3_KaP9hHU7guyhwfBoM1gc_dOOo';   // API 키
-    const range = 'Sheet1!A2:C';     // 데이터 범위
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyU5BLdmPvbVmkTmCGClh09spcCLwEUJj2MmDzSHjRVuIuGoCg_vtYwyQK132LhEMF1Dg/exec'; // ← 여기에 Web App URL 넣기
 
     async function loadData() {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      const list = document.getElementById('list');
-      data.values.forEach(row => {
-        const li = document.createElement('li');
-        li.textContent = `${row[0]} (${row[1]}세, ${row[2]})`;
-        list.appendChild(li);
+      const response = await fetch(scriptURL + '?action=read');
+      const data = await response.json();
+      const tbody = document.querySelector('#dataTable tbody');
+      tbody.innerHTML = '';
+      if (!data || data.length === 0) return;
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td>`;
+        tbody.appendChild(tr);
       });
     }
+
+    // 폼 제출 처리
+    document.getElementById('dataForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const message = document.getElementById('message').value;
+
+      const payload = { name, email, message };
+
+      await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      e.target.reset();
+      loadData(); // 추가 후 목록 갱신
+    });
 
     loadData();
   </script>
