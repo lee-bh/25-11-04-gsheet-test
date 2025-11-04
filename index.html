@@ -3,78 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>Google Sheets DB Demo</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 40px;
-      background: #f6f8fa;
-    }
-    h1 {
-      color: #333;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      background: #fff;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #eee;
-    }
-    form {
-      margin-bottom: 20px;
-      background: #fff;
-      padding: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    input {
-      margin: 5px;
-      padding: 6px;
-    }
-    button {
-      padding: 6px 12px;
-      background: #007bff;
-      border: none;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-  </style>
 </head>
 <body>
-  <h1>Google Sheets Database Demo</h1>
+  <h1>Google Sheets DB Demo</h1>
 
   <form id="dataForm">
-    <label>이름: <input type="text" id="name" required></label>
-    <label>이메일: <input type="email" id="email" required></label>
-    <label>메시지: <input type="text" id="message" required></label>
+    <input type="text" id="name" placeholder="이름" required>
+    <input type="email" id="email" placeholder="이메일" required>
+    <input type="text" id="message" placeholder="메시지" required>
     <button type="submit">추가</button>
   </form>
 
-  <table id="dataTable">
-    <thead>
-      <tr><th>이름</th><th>이메일</th><th>메시지</th></tr>
-    </thead>
+  <table id="dataTable" border="1">
+    <thead><tr><th>이름</th><th>이메일</th><th>메시지</th></tr></thead>
     <tbody></tbody>
   </table>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyU5BLdmPvbVmkTmCGClh09spcCLwEUJj2MmDzSHjRVuIuGoCg_vtYwyQK132LhEMF1Dg/exec'; // ← 여기에 Web App URL 넣기
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxRzvixU7M82pIHoKwMbOLwB5jHrZguzio7jut6e86xByjNPwb5nWEjc5iQV-WlM1OxuA/exec';
 
     async function loadData() {
-      const response = await fetch(scriptURL + '?action=read');
-      const data = await response.json();
+      const response = await fetch(scriptURL + '?action=read', { mode: 'no-cors' });
+      // no-cors 모드에서는 응답 내용을 바로 읽을 수 없으므로, 구글 앱스크립트에서
+      // JSON 응답을 받을 때만 작동 (같은 출처일 때만 JSON 접근 가능)
+      const data = await (await fetch(scriptURL + '?action=read')).json();
       const tbody = document.querySelector('#dataTable tbody');
       tbody.innerHTML = '';
-      if (!data || data.length === 0) return;
       data.forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td>`;
@@ -82,23 +36,19 @@
       });
     }
 
-    // 폼 제출 처리
-    document.getElementById('dataForm').addEventListener('submit', async (e) => {
+    document.querySelector('#dataForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('name').value;
       const email = document.getElementById('email').value;
       const message = document.getElementById('message').value;
-
-      const payload = { name, email, message };
-
       await fetch(scriptURL, {
         method: 'POST',
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ name, email, message }),
         headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors'
       });
-
       e.target.reset();
-      loadData(); // 추가 후 목록 갱신
+      loadData();
     });
 
     loadData();
