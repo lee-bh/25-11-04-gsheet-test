@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sheets DB Demo</title>
+</head>
+<body>
+  <h2>Google Sheets Data</h2>
+  <ul id="list"></ul>
+  <script>
+    const sheetId = '1jECqla6oE5WB4U62NE__Qac22K2xfvyUeQ1VaGvK2K8'; // 시트 ID
+    const apiKey = 'AIzaSyC5-vsP3_KaP9hHU7guyhwfBoM1gc_dOOo';   // API 키
+    const range = 'Sheet1!A2:C';     // 데이터 범위
+
+    async function loadData() {
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      const list = document.getElementById('list');
+      data.values.forEach(row => {
+        const li = document.createElement('li');
+        li.textContent = `${row[0]} (${row[1]}세, ${row[2]})`;
+        list.appendChild(li);
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
